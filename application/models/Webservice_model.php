@@ -35,6 +35,9 @@ else {
 
 
 
+
+
+
     public function check_useremail_exists($email=flase){
  $this->db->select('COUNT(email) as usercount ');
              $this->db->from('tbl_users');
@@ -63,9 +66,6 @@ else {
     	 $record['salt'] = $salt;
     }
    
-     
-
-  
  return $record;
 
     }
@@ -76,18 +76,68 @@ else {
     	$this->db->select('*');
     	$this->db->from('tbl_users');
     	 $this->db->where('email', $data['email']);
-   
  		$query = $this->db->get();
           $result = $query->row_array();
+
+         
           $password = $data['password'];
- $salt = $result['salt'];
+          $salt = $result['salt'];
+           $pass_from_user = sha1($salt . sha1($salt . sha1($password)));
             $pass_from_db = $result['password'];
-            $pass_from_user = sha1($salt . sha1($salt . sha1($password)));
           if( $pass_from_db ==  $pass_from_user){
 
             $userRecords = $result;
             return $userRecords;
 
           }
+    }
+
+
+
+
+    public function updateUserPass($otp,$password){
+
+    		if(!empty($otp) && !empty($password)){
+    	$salt = helpers::createSalt();
+    	$newPassword = helpers::createPassword($password,$salt);
+
+    	$this->db->set(array('password'=>$newPassword,'salt'=>$salt, 'otp'=>Null));  
+    	$this->db->where('otp',$otp);
+    	$this->db->update('tbl_users'); 
+
+    	
+
+    	return true;
+    }
+    else
+    
+    	return flase;
+    
+
+    }
+
+    public function EnterOtpInDbase($email,$otp){
+
+	 $this->db->set('otp',$otp);
+	 $this->db->where('email',$email);
+	$this->db->update('tbl_users'); 
+
+
+	 return true;
+
+
+    }
+
+    public function getOraniserActivities($user_id){
+    	$this->db->select('*')
+         ->from('activities')
+         ->where('user_id',$user_id)
+         ->join('tbl_users', 'tbl_users.id = activities.user_id','left');
+$query = $this->db->get();
+  $result = $query->result_array();
+
+
+return $result;
+
     }
 }

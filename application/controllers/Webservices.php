@@ -73,6 +73,84 @@ $this->print_response($response);
     }
 
 
+    public function getOtpByEmail(){
+
+    	$data = $this->get_JSON_Request();
+
+    	$user_exist = $this->Webservice_model->check_useremail_exists($data['email']);
+
+    	if(!empty($user_exist)){
+
+
+    		$message = helpers::generateOTPString();
+
+    		$this->Webservice_model->EnterOtpInDbase($data['email'],$message);
+
+    	 helpers::SendEmails($data['email'],'OTP code',$message);
+
+    	 $response = array('status'=>true, 'message'=>'OTP sent to your email.','result'=> $user_exist);
+
+    	}
+    	else{
+			$response = array('status'=>flase, 'message'=>'Something went Wrong','result'=> $user_exist);
+		}
+		$this->print_response($response);
+
+
+    }
+
+
+    public function resetPassword(){
+
+    	$data = $this->get_JSON_Request();
+
+
+    	if(!empty($data['email'])&& !empty($data['otp']) && !empty($data['password'])){
+
+    		 $getresult = $this->Webservice_model->updateUserPass($data['otp'],$data['password']);
+
+    		
+
+    		 if($getresult==true){
+
+    		 	  $result = $query->row_array();
+
+    		 }
+
+
+    		 else{
+
+    		 	$response = array('status'=>flase, 'message'=>'Something went wrong','result'=> $getresult);
+    		 }
+
+    		 $this->print_response($response);
+
+    	}
+
+    }
+
+
+    public function organiserEventDetails(){
+
+    	$data = $this->get_JSON_Request();
+
+    	if(!empty($data['user_id'])){
+
+    		$resultArr = $this->Webservice_model->getOraniserActivities($data['user_id']);
+
+    		if(!empty($resultArr)){
+
+    				$response = array('status'=>true, 'message'=>'Organiser Activities fetched Succesfully','result'=> $resultArr);
+    		}
+
+    		else
+    			$response = array('status'=>flase, 'message'=>'Something went wrong','result'=> null);
+    	}
+ $this->print_response($response);
+
+    }
+
+
 
 
 // -------------------------------------------functions----------------------------//
